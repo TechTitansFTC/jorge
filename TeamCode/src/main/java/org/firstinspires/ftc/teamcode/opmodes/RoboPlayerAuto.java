@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 import org.firstinspires.ftc.teamcode.subsystems.Outtake.Shooter;
 
-@Autonomous(name = "farThree", group = "Auto")
-public class LeaveZoneAuto extends LinearOpMode {
+@Autonomous(name = "RoboPlayersAuto", group = "Auto")
+public class RoboPlayerAuto extends LinearOpMode {
     private Shooter shoot;
     private enum FSMState {
         SPINDEXER_SET,
