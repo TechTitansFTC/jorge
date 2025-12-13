@@ -112,6 +112,7 @@ public class Transfer {
                 })
                 .setMinTime(timeForSpindex)
                 .setMaxTime(timeForSpindex)
+                .setFallbackState("WAITING")
                 .addTransition(new Transition(() -> ready.getAsBoolean() && hasTwo, "DOWN"));
 
         states[4] = new State("RIGHT")
@@ -125,6 +126,7 @@ public class Transfer {
                 })
                 .setMinTime(timeForSpindex)
                 .setMaxTime(timeForSpindex)
+                .setFallbackState("WAITING")
                 .addTransition(new Transition(() -> ready.getAsBoolean() && hasThree, "DOWN"));
 
         states[5] = new State("DOWN")
