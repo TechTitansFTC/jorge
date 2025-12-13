@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.testers;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+//import com.acmerobotics.dashboard.FtcDashboard;
+//import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -47,13 +47,11 @@ public class OuttakeTest extends LinearOpMode {
         intake = new Bootwheel(hardwareMap);
         transfer = new Transfer(hardwareMap);
 
-        double hoodTarget = 1.0;
+        double hoodTarget = 0.5;
         double targetVel = 0;
         double curDistance = 0;
 
-        MultipleTelemetry telemetryData = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-
-        intake.setPower(1);
+        intake.setPower(02);
 
         waitForStart();
 
@@ -62,6 +60,8 @@ public class OuttakeTest extends LinearOpMode {
         if (isStopRequested()) return;
 
         while (opModeIsActive()) {
+            pp.update();
+
             shooter.setTargetVel(targetVel);
             hood.setPosition(hoodTarget);
 
@@ -109,15 +109,15 @@ public class OuttakeTest extends LinearOpMode {
 
             curDistance = Math.sqrt(Math.pow(Math.abs(pp.getPosX(DistanceUnit.INCH)), 2) + Math.pow(Math.abs(pp.getPosY(DistanceUnit.INCH)), 2));
 
-            telemetryData.addData("target Vel", targetVel);
-            telemetryData.addData("current Vel", shooter.getCurrentVel());
-            telemetryData.addData("hood target", hoodTarget);
-            telemetryData.addData("distance from goal", curDistance);
-            telemetryData.addLine();
-            telemetryData.addData("ready to shoot", shooter.atVelocity());
-            telemetryData.addLine();
-            telemetryData.addData("", transfer);
-            telemetryData.update();
+            telemetry.addData("target Vel", targetVel);
+            telemetry.addData("current Vel", shooter.getCurrentVel());
+            telemetry.addData("hood target", hoodTarget);
+            telemetry.addData("distance from goal", curDistance);
+            telemetry.addLine();
+            telemetry.addData("ready to shoot", shooter.atVelocity());
+            telemetry.addLine();
+            telemetry.addData("", transfer);
+            telemetry.update();
 
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing

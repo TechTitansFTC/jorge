@@ -1,8 +1,10 @@
 package org.firstinspires.ftc.teamcode.util;
 
+import java.util.function.Supplier;
+
 public class PIDF {
 
-    private double kP, kD, kF;
+    private Supplier<Double> kP, kD, kF;
     private double setPoint;
     private double reportedValue;
 
@@ -17,10 +19,14 @@ public class PIDF {
     }
 
     public PIDF (double kp, double kd, double kf) {
-        this(kp, kd, kf, 0, 0);
+        this(() -> kp, () -> kd, () -> kf, 0, 0);
     }
 
-    public PIDF (double kP, double kD, double kF, double sp, double pv) {
+    public PIDF (double kp, double kd, Supplier<Double> kV) {
+        this(() -> kp, () -> kd, kV, 0, 0);
+    }
+
+    public PIDF (Supplier<Double> kP, Supplier<Double> kD, Supplier<Double> kF, double sp, double pv) {
         this.kP = kP;
         this.kD = kD;
         this.kF = kF;
@@ -70,7 +76,7 @@ public class PIDF {
     }
 
     public double[] getCoeffs() {
-        return new double[]{kP, kD, kF};
+        return new double[]{kP.get(), kD.get(), kF.get()};
     }
 
     public double[] getTolerance() {
@@ -117,7 +123,7 @@ public class PIDF {
 
         totalError = period * (setPoint - reportedValue);
 
-        return (Math.signum(kP * pError) * Math.sqrt(kP * pError)) + kD * vError + kF * setPoint;
+        return (Math.signum(kP.get() * pError) * Math.sqrt(kP.get() * pError)) + kD.get() * vError + kF.get() * setPoint;
     }
 
     public void setPDF (double kP, double kF, double kD) {
@@ -130,27 +136,27 @@ public class PIDF {
     }
 
     public void setP(double kp) {
-        kP = kp;
+        kP = () -> kp;
     }
 
     public void setD(double kd) {
-        kD = kd;
+        kD = () -> kd;
     }
 
     public void setF(double kf) {
-        kF = kf;
+        kF = () -> kf;
     }
 
     public double getP() {
-        return kP;
+        return kP.get();
     }
 
     public double getD() {
-        return kD;
+        return kD.get();
     }
 
     public double getF() {
-        return kF;
+        return kF.get();
     }
 
     public double getPeriod() {

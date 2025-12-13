@@ -25,6 +25,7 @@ public class Transfer {
     private String curBall = "LEFT";
     private String targetSlot = "LEFT";
     private int curSlot;
+    private final int timeForSpindex = 500;
     private boolean hasOne, hasTwo, hasThree;
 
     public Transfer (HardwareMap map) {
@@ -52,7 +53,7 @@ public class Transfer {
         states[0] = new State("IDLE")
                 .setDuring(() -> {
                     elevator.setStatus(Constants.ElevatorPosition.UP);
-                    spindex.setPosition(Constants.Positions.CENTER);
+                    spindex.setPosition(Constants.Positions.LEFT);
                     curSlot = 2;
                 })
                 .addTransition(new Transition(shoot, "WAITING"));
@@ -95,10 +96,10 @@ public class Transfer {
                     spindex.setPosition(Constants.Positions.LEFT);
                     curSlot = 1;
                 })
-                .setMinTime(500)
+                .setMinTime(timeForSpindex)
                 .addTransition(new Transition(() -> ready.getAsBoolean() && hasOne, "DOWN"))
                 .setFallbackState("WAITING")
-                .setMaxTime(1000); // jank to time based while I debug nServo
+                .setMaxTime(timeForSpindex); // jank to time based while I debug nServo
 
         states[3] = new State("CENTER")
                 .setEntry(() -> {
@@ -109,7 +110,8 @@ public class Transfer {
                         states[3].setMaxTime(0);
                     }
                 })
-                .setMinTime(500)
+                .setMinTime(timeForSpindex)
+                .setMaxTime(timeForSpindex)
                 .addTransition(new Transition(() -> ready.getAsBoolean() && hasTwo, "DOWN"));
 
         states[4] = new State("RIGHT")
@@ -121,7 +123,8 @@ public class Transfer {
                         states[4].setMaxTime(0);
                     }
                 })
-                .setMinTime(500)
+                .setMinTime(timeForSpindex)
+                .setMaxTime(timeForSpindex)
                 .addTransition(new Transition(() -> ready.getAsBoolean() && hasThree, "DOWN"));
 
         states[5] = new State("DOWN")
@@ -158,7 +161,7 @@ public class Transfer {
     public void init() {
         state.start();
         elevator.setStatus(Constants.ElevatorPosition.UP);
-        spindex.setPosition(Constants.Positions.CENTER);
+        spindex.setPosition(Constants.Positions.LEFT);
     }
 
     public void update() {

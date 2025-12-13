@@ -2,8 +2,8 @@ package org.firstinspires.ftc.teamcode;
 
 public class Constants {
     public enum ElevatorPosition {
-        UP (214/355.0, 214/355.0),
-        DOWN (324/355.0, 324/355.0);
+        UP (ELEVATOR_LEFT_UP, ELEVATOR_RIGHT_UP),
+        DOWN (ELEVATOR_LEFT_DOWN, ELEVATOR_RIGHT_DOWN);
 
         private final double left, right;
         ElevatorPosition (double left, double right) {
@@ -20,9 +20,9 @@ public class Constants {
         }
     }
     public enum Positions {
-        CENTER(140.0 / 355.0),
-        LEFT(1 / 355.0),
-        RIGHT(267.0 / 355.0);
+        CENTER(SPINDEXER_TWO),
+        LEFT(SPINDEXER_ONE),
+        RIGHT(SPINDEXER_THREE);
 
         private final double position;
         Positions(double position) {
@@ -34,15 +34,15 @@ public class Constants {
     }
 
     //Elevator
-    public static final double ELEVATOR_LEFT_UP = 230/355;
-    public static final double ELEVATOR_LEFT_DOWN = 345/355;
-    public static final double ELEVATOR_RIGHT_UP = 232/355;
-    public static final double ELEVATOR_RIGHT_DOWN = 345/355;
+    public static final double ELEVATOR_LEFT_UP = 214.0/355;
+    public static final double ELEVATOR_LEFT_DOWN = 324.0/355;
+    public static final double ELEVATOR_RIGHT_UP = 205.0/355;
+    public static final double ELEVATOR_RIGHT_DOWN = 324.0/355;
 
     //Spindexer
-    public static final double SPINDEXER_THREE = 270/355;
-    public static final double SPINDEXER_TWO = 130/355;
-    public static final double SPINDEXER_ONE = 0/355;
+    public static final double SPINDEXER_THREE = 265.0 / 355;
+    public static final double SPINDEXER_TWO = 140.0 / 355;
+    public static final double SPINDEXER_ONE = 0.0 / 355;
     public static final double SPINDEXER_INTAKE = 65/355;
 
 

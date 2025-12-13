@@ -1,16 +1,13 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
-import com.acmerobotics.roadrunner.Pose2d;
-import com.acmerobotics.roadrunner.PoseVelocity2d;
-import com.acmerobotics.roadrunner.Vector2d;
+import com.pedropathing.follower.Follower;
+import com.pedropathing.geometry.Pose;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 
 import org.firstinspires.ftc.teamcode.ShooterProfiling.InterpLUT;
 import org.firstinspires.ftc.teamcode.ShooterProfiling.ShooterPair;
-import org.firstinspires.ftc.teamcode.roadrunner.MecanumDrive;
+import org.firstinspires.ftc.teamcode.pedroPathing.Constants;
 import org.firstinspires.ftc.teamcode.subsystems.Indexer.Transfer;
 import org.firstinspires.ftc.teamcode.subsystems.Intake.Bootwheel;
 import org.firstinspires.ftc.teamcode.subsystems.Outtake.Hood;
@@ -19,16 +16,16 @@ import org.firstinspires.ftc.teamcode.subsystems.Outtake.Shooter;
 @TeleOp(name = "jank Tele", group = ".")
 public class jankTele extends LinearOpMode {
 
+    private double curDistance;
     private Bootwheel intake;
     private Transfer transfer;
     private Shooter flywheel;
     private Hood hood;
     private InterpLUT table;
     private ShooterPair settings;
-    private Pose2d pose;
-    public final static Pose2d target = new Pose2d(-52, 52, Math.toRadians(135));
-    public static Pose2d init = new Pose2d(0, 0, 0);
-    private MecanumDrive drive;
+    private Pose pose;
+    public static Pose target = new Pose(-52, 52, Math.toRadians(135));
+    private Follower drive;
 
 
     @Override
@@ -37,40 +34,47 @@ public class jankTele extends LinearOpMode {
         transfer = new Transfer(hardwareMap);
         flywheel = new Shooter(hardwareMap);
         hood = new Hood(hardwareMap);
-        drive = new MecanumDrive(hardwareMap, new Pose2d(0, 0, 0));
+        drive = Constants.createFollower(hardwareMap);
+        drive.setStartingPose(new Pose(0,0,Math.toRadians(0)));
+        drive.update();
 
         transfer.init();
 
         table = new InterpLUT();
-        table.addPoint(24, 900, 0.144);
-        table.addPoint(55, 1200, 0.64);
-        table.addPoint(76, 1300, 0.66);
-        table.addPoint(79, 1200, 0.54);
-        table.addPoint(103, 1300, .692);
-        table.addPoint(130, 1500, .718);
-        table.addPoint(140, 1700, .71);
+        table.addPoint(24, 1000, 0.24);
+        table.addPoint(30, 1000, 0.24);
+        table.addPoint(45, 1000, 0.33);
+        table.addPoint(60, 1100, 0.28);
+        table.addPoint(70, 1100, 0.33);
 
         boolean shooting = false;
 
-        MultipleTelemetry telemetryData = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-
         waitForStart();
+
+        drive.startTeleOpDrive(true);
 
         if (isStopRequested()) return;
 
         while (opModeIsActive()) {
+            drive.update();
+            drive.updatePose();
+
+            pose = drive.getPose();
+            double deltaX = Math.abs(pose.getX() - target.getX());
+            double deltaY = Math.abs(pose.getY() - target.getY());
+            curDistance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
+
             intake.update();
             transfer.update();
             flywheel.update();
             hood.update();
 
-            drive.setDrivePowers(new PoseVelocity2d(
-                    new Vector2d(
-                            -0.5 * Math.tan(1.12 * gamepad1.left_stick_y),
-                            -0.5 * Math.tan(1.12 * gamepad1.left_stick_x)
-                    ),
-                    -0.5 * Math.tan(1.12 * gamepad1.right_stick_x)
-            ));
+            drive.setTeleOpDrive(
+                    -gamepad1.left_stick_y,
+                    -gamepad1.left_stick_x,
+                    -gamepad1.right_stick_x,
+                    false
+            );
 
             if (gamepad1.leftBumperWasPressed()) {
                 intake.setPower(0);
@@ -86,14 +90,29 @@ public class jankTele extends LinearOpMode {
                 transfer.requestShoot();
             }
 
+            if (gamepad1.optionsWasPressed()) {
+                drive.setPose(new Pose(129.5, 129.5, Math.toRadians(38)));
+                target = drive.getPose();
+            } else if (gamepad1.shareWasPressed()) {
+                drive.setPose(new Pose(21.5, 129.5, Math.toRadians(143)));
+                target = drive.getPose();
+            }
+
+
+
             if (shooting) {
-                setSettings();
-                if (settings != null) {
+                if (setSettings()) {
+                    if (settings != null) {
+                        flywheel.setTargetVel(settings.getVel());
+                        hood.setPosition(settings.getHood());
+                        telemetry.addData("LUT Status", "OK");
+                    } else {
+                        telemetry.addData("LUT Status", "FAIL - Distance out of bounds");
+                    }
+                } else {
                     flywheel.setTargetVel(settings.getVel());
                     hood.setPosition(settings.getHood());
-                    telemetryData.addData("LUT Status", "OK");
-                } else {
-                    telemetryData.addData("LUT Status", "FAIL - Distance out of bounds");
+                    telemetry.addData("LUT", "FAR");
                 }
 
                 if (flywheel.atVelocity()) {
@@ -104,31 +123,34 @@ public class jankTele extends LinearOpMode {
                     shooting = false;
                 }
 
-//                telemetryData.addData("Calculated Distance", curDistance);
-                telemetryData.addData("Target Vel", flywheel.getTargetVel());
-                telemetryData.addData("Current Vel", flywheel.getCurrentVel());
-                telemetryData.addData("At Velocity?", flywheel.atVelocity());
+//                telemetry.addData("Calculated Distance", curDistance);
+                telemetry.addData("Target Vel", flywheel.getTargetVel());
+                telemetry.addData("Current Vel", flywheel.getCurrentVel());
+                telemetry.addData("At Velocity?", flywheel.atVelocity());
 
             } else {
                 flywheel.setTargetVel(1300);
                 hood.setPosition(0.5);
             }
 
-            Pose2d currentPose = drive.localizer.getPose();
-            telemetryData.addData("Robot Pose X", currentPose.position.x);
-            telemetryData.addData("Robot Pose Y", currentPose.position.y);
-            telemetryData.addData("Shooting Mode", shooting);
-            telemetryData.addData("Transfer State", transfer.toString());
-            telemetryData.update();
+            Pose currentPose = drive.getPose();
+            telemetry.addData("Robot Pose X", currentPose.getX());
+            telemetry.addData("Robot Pose Y", currentPose.getY());
+            telemetry.addData("Shooting Mode", shooting);
+            telemetry.addData("Transfer State", transfer.toString());
+            telemetry.addData("Cur Distance", curDistance);
+            telemetry.update();
         }
     }
 
-    private void setSettings() {
-        pose = drive.localizer.getPose();
-        double deltaX = Math.abs(pose.position.x - target.position.x);
-        double deltaY = Math.abs(pose.position.y - target.position.y);
-        double curDistance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
+    private boolean setSettings() {
 
-        settings = table.lookup(curDistance);
+        if (curDistance > 70) {
+            settings = new ShooterPair(1400, 0.536);
+            return false;
+        }
+
+        ShooterPair settings = table.lookup(curDistance);
+        return true;
     }
 }

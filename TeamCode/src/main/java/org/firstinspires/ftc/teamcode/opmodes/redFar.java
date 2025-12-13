@@ -22,104 +22,135 @@ import org.firstinspires.ftc.teamcode.util.statemachine.Transition;
 
 import java.util.ArrayList;
 
-@Autonomous(name = "red Close", group = "Autonomous")
-public class redClose extends OpMode {
+@Autonomous(name = "red Far", group = "Autonomous")
+public class redFar extends OpMode {
 
     private Bootwheel intake;
     private Transfer transfer;
     private Shooter flywheel;
     private Hood hood;
-    private InterpLUT table;
-    private Pose curPos;
-    private double curDistance;
 
     private Follower follower;
-    private Timer pathTimer, actionTimer, opmodeTimer;
     private StateMachine state;
     private int curState;
     private boolean shootingInit = false;
 
     private final Pose goal = new Pose(129.5, 129.5);
 
-    private final Pose startPose = new Pose(122.838, 123.081, Math.toRadians(38));
-    private final Pose scorePose = new Pose(84.405, 84.649, Math.toRadians(52));
-    private final Pose openGate = new Pose(131.595, 72.568, Math.toRadians(0));
-    private final Pose intakeMid = new Pose(134.501, 59.082, Math.toRadians(0));
-    private final Pose intakeFar = new Pose(134.501, 35.145, Math.toRadians(0));
-    private final Pose parkPose = new Pose(98, 121, Math.toRadians(65));
+    private final Pose startPose = new Pose(80.972, 7.85, Math.toRadians(90));
+    private final Pose score = new Pose(81.421, 21.084, Math.toRadians(70));
+    private final Pose intakeMid = new Pose(145, 59.644, Math.toRadians(0));
+    private final Pose openGate = new Pose(135, 72, Math.toRadians(-90));
+    private final Pose intakeFar = new Pose(145, 35, Math.toRadians(0));
+    private final Pose intakeHP = new Pose(139, 10, Math.toRadians(-43));
 
-    private PathChain scorePreload, intakeFirstSet, scoreFirstSet, intakeSecondSet, scoreSecondSet, intakeThirdSet, scoreThirdSet, park;
+    private PathChain scorePreload, intakeFirstSet, gateOpen, scoreFirstSet, intakeSecondSet, scoreSecondSet, pickupHP, scoreHP, park;
 
     private void buildPaths() {
         scorePreload = follower.pathBuilder()
-             .addPath(
-                     new BezierLine(startPose, scorePose)
-             )
-             .setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading())
-                .setBrakingStart(0.7)
-             .build();
+                .addPath(
+                        new BezierLine(startPose, score)
+                )
+                .setLinearHeadingInterpolation(startPose.getHeading(), score.getHeading())
+                .build();
 
         intakeFirstSet = follower.pathBuilder()
-             .addPath(
-                     new BezierCurve(
-                             scorePose,
-                             new Pose(134.027, 84.324),
-                             openGate
-                     )
-             )
-             .setConstantHeadingInterpolation(Math.toRadians(0))
-             .build();
+                .addPath(
+                        new BezierCurve(
+                                score,
+                                new Pose(73.346, 61.682),
+                                new Pose(97.346, 58.542)
+                        )
+                )
+                .addPath(
+                        new BezierLine(
+                                new Pose(97.346, 58.542),
+                                intakeMid
+                        )
+                )
+                .setTangentHeadingInterpolation()
+                .build();
+
+        gateOpen = follower.pathBuilder()
+                .addPath(
+                        new BezierCurve(
+                                intakeMid,
+                                new Pose(111.925, 72.224),
+                                openGate
+                        )
+                )
+                .setLinearHeadingInterpolation(intakeMid.getHeading(), openGate.getHeading())
+                .build();
 
         scoreFirstSet = follower.pathBuilder()
-             .addPath(
-                     new BezierCurve(
-                             openGate,
-                             new Pose(132.081, 85.297),
-                             scorePose
-                     )
-             )
-             .setLinearHeadingInterpolation(openGate.getHeading(), scorePose.getHeading())
-             .build();
+                .addPath(
+                        new BezierCurve(
+                            openGate,
+                            new Pose(61.009, 70.654),
+                            score
+                        )
+                )
+                .setLinearHeadingInterpolation(openGate.getHeading(), score.getHeading())
+                .build();
 
         intakeSecondSet = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        scorePose,
-                        new Pose(105.568, 53.514),
-                        intakeMid
-                ))
-                .setTangentHeadingInterpolation()
+                .addPath(
+                        new BezierCurve(
+                                score,
+                                new Pose(72.449, 37.009),
+                                intakeFar
+                        )
+                )
+                .setLinearHeadingInterpolation(score.getHeading(), intakeFar.getHeading())
                 .build();
 
         scoreSecondSet = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        intakeMid,
-                        new Pose(103.622, 54.973),
-                        scorePose
-                ))
-                .setLinearHeadingInterpolation(intakeMid.getHeading(), scorePose.getHeading())
+                .addPath(
+                        new BezierCurve(
+                                intakeFar,
+                                new Pose(68.411, 39.925),
+                                score
+                        )
+                )
+                .setLinearHeadingInterpolation(intakeFar.getHeading(), score.getHeading())
                 .build();
 
-        intakeThirdSet = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        scorePose,
-                        new Pose(86.108, 27),
-                        intakeFar
-                ))
+        pickupHP = follower.pathBuilder()
+                .addPath(
+                        new BezierCurve(
+                                score,
+                                new Pose(88.150, 50.243),
+                                new Pose(130.991, 17.495)
+                        )
+                )
+                .addPath(
+                        new BezierLine(
+                                new Pose(130.991, 17.495),
+                                intakeHP
+                        )
+                )
                 .setTangentHeadingInterpolation()
                 .build();
 
-        scoreThirdSet = follower.pathBuilder()
-                .addPath(new BezierCurve(
-                        intakeFar,
-                        new Pose(85.622, 26.027),
-                        scorePose
-                ))
-                .setLinearHeadingInterpolation(intakeFar.getHeading(), scorePose.getHeading())
+        scoreHP = follower.pathBuilder()
+                .addPath(
+                        new BezierCurve(
+                                intakeHP,
+                                new Pose(93.981, 51.813),
+                                score
+                        )
+                )
+                .setLinearHeadingInterpolation(intakeHP.getHeading(), score.getHeading())
                 .build();
 
         park = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, parkPose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), parkPose.getHeading())
+                .addPath(
+                        new BezierLine(
+                                score,
+                                new Pose(85, 25)
+                        )
+                )
+                .setLinearHeadingInterpolation(score.getHeading(), intakeFar.getHeading())
                 .build();
     }
 
@@ -149,10 +180,19 @@ public class redClose extends OpMode {
         );
 
         temp.add(
+                new State("OPEN_GATE")
+                        .setEntry(() -> {
+                            follower.followPath(gateOpen);
+                            curState = 2;
+                        })
+                        .addTransition(new Transition(() -> !follower.isBusy(), () -> nextPath(curState)))
+        );
+
+        temp.add(
                 new State("SCORE_FIRST")
                         .setEntry(() -> {
                             follower.followPath(scoreFirstSet);
-                            curState = 2;
+                            curState = 3;
                         })
                         .addTransition(new Transition(() -> !follower.isBusy(), "SCORE"))
         );
@@ -161,7 +201,7 @@ public class redClose extends OpMode {
                 new State("INTAKE_SECOND")
                         .setEntry(() -> {
                             follower.followPath(intakeSecondSet);
-                            curState = 3;
+                            curState = 4;
                         })
                         .addTransition(new Transition(() -> !follower.isBusy(), () -> nextPath(curState)))
         );
@@ -170,25 +210,25 @@ public class redClose extends OpMode {
                 new State("SCORE_SECOND")
                         .setEntry(() -> {
                             follower.followPath(scoreSecondSet);
-                            curState = 4;
+                            curState = 5;
                         })
                         .addTransition(new Transition(() -> !follower.isBusy(), "SCORE"))
         );
 
         temp.add(
-                new State("INTAKE_THIRD")
+                new State("INTAKE_HP")
                         .setEntry(() -> {
-                            follower.followPath(intakeThirdSet);
-                            curState = 5;
+                            follower.followPath(pickupHP);
+                            curState = 6;
                         })
                         .addTransition(new Transition(() -> !follower.isBusy(), () -> nextPath(curState)))
         );
 
         temp.add(
-                new State("SCORE_THIRD")
+                new State("SCORE_HP")
                         .setEntry(() -> {
-                            follower.followPath(scoreThirdSet);
-                            curState = 6;
+                            follower.followPath(scoreHP);
+                            curState = 7;
                         })
                         .addTransition(new Transition(() -> !follower.isBusy(), "SCORE"))
         );
@@ -233,12 +273,13 @@ public class redClose extends OpMode {
     private String nextPath (int curState) {
         switch (curState) {
             case 0: return "INTAKE_FIRST";
-            case 1: return "SCORE_FIRST";
-            case 2: return "INTAKE_SECOND";
-            case 3: return "SCORE_SECOND";
-            case 4: return "INTAKE_THIRD";
-            case 5: return "SCORE_THIRD";
-            case 6: return "PARK";
+            case 1: return "OPEN_GATE";
+            case 2: return "SCORE_FIRST";
+            case 3: return "INTAKE_SECOND";
+            case 4: return "SCORE_SECOND";
+            case 5: return "INTAKE_HP";
+            case 6: return "SCORE_HP";
+            case 7: return "PARK";
             default: return "ERROR";
         }
     }
@@ -251,20 +292,7 @@ public class redClose extends OpMode {
         hood = new Hood(hardwareMap);
 
         transfer.init();
-        hood.setPosition(0.5);
-
-        table = new InterpLUT();
-        table.addPoint(24, 900, 0.144);
-        table.addPoint(55, 1200, 0.64);
-        table.addPoint(76, 1300, 0.66);
-        table.addPoint(79, 1200, 0.54);
-        table.addPoint(103, 1300, .692);
-        table.addPoint(130, 1500, .718);
-        table.addPoint(140, 1700, .71);
-
-        pathTimer = new Timer();
-        opmodeTimer = new Timer();
-        opmodeTimer.resetTimer();
+        hood.setPosition(0.536);
 
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
@@ -272,9 +300,6 @@ public class redClose extends OpMode {
 
         state = new StateMachine(stateBuilder());
         state.start();
-
-
-        curPos = follower.getPose();
     }
 
     @Override
@@ -288,16 +313,9 @@ public class redClose extends OpMode {
         transfer.update();
 
         // autoSet shooter
-        curPos = follower.getPose();
-        double deltaX = Math.abs(curPos.getX() - goal.getX());
-        double deltaY = Math.abs(curPos.getY() - goal.getY());
-        curDistance = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
 
-        ShooterPair settings = table.lookup(curDistance);
-        if (settings != null) {
-            flywheel.setTargetVel(settings.getVel());
-            hood.setPosition(settings.getHood());
-        }
+        flywheel.setTargetVel(1400);
+        hood.setPosition(.536);
 
         telemetry.addData("state", state.currentState());
         telemetry.addData("robot pose", follower.getPose().toString());

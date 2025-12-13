@@ -1,8 +1,8 @@
 package org.firstinspires.ftc.teamcode.testers;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.config.Config;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+//import com.acmerobotics.dashboard.FtcDashboard;
+//import com.acmerobotics.dashboard.config.Config;
+//import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
@@ -10,20 +10,20 @@ import com.qualcomm.robotcore.hardware.VoltageSensor;
 
 import org.firstinspires.ftc.teamcode.util.PIDF;
 
-@Config
+//@Config
 @TeleOp(name = "PIDF Tuner", group = "tuners")
 public class shooterPIDFTuner extends LinearOpMode {
 
     public static double P = 0;
     public static double D = 0;
-    public static double F = 0;
+    public static double kV = 0;
 
     public static double targetVel = 0;
     public static double tolerance = 0;
 
 
-    MultipleTelemetry telemetryData = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
-    private static final PIDF shooter = new PIDF(P, D, F);
+//    MultipleTelemetry telemetryData = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+    private static final PIDF shooter = new PIDF(P, D, 0);
     private DcMotorEx leftShooter, rightShooter;
 
     @Override
@@ -45,7 +45,7 @@ public class shooterPIDFTuner extends LinearOpMode {
 
             shooter.setP(P);
             shooter.setD(D);
-            shooter.setF(F);
+            shooter.setF(kV * targetVel);
 
         double power = shooter.calculate(currentVel, targetVel);
         power /= voltage.getVoltage();
@@ -53,10 +53,10 @@ public class shooterPIDFTuner extends LinearOpMode {
             leftShooter.setPower(power);
             rightShooter.setPower(power);
 
-            telemetryData.addData("power", power);
-            telemetryData.addData("target velocity", targetVel);
-            telemetryData.addData("actual velocity", currentVel);
-            telemetryData.update();
+//            telemetryData.addData("power", power);
+//            telemetryData.addData("target velocity", targetVel);
+//            telemetryData.addData("actual velocity", currentVel);
+//            telemetryData.update();
             shooter.setTolerance(tolerance);
         }
     }

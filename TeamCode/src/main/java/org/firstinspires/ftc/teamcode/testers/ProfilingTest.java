@@ -1,7 +1,7 @@
 package org.firstinspires.ftc.teamcode.testers;
 
-import com.acmerobotics.dashboard.FtcDashboard;
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
+//import com.acmerobotics.dashboard.FtcDashboard;
+//import com.acmerobotics.dashboard.telemetry.MultipleTelemetry;
 import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
@@ -67,7 +67,7 @@ public class ProfilingTest extends LinearOpMode {
         table.addPoint(140, 1700, .71);
 
 
-        MultipleTelemetry telemetryData = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
+//        MultipleTelemetry telemetryData = new MultipleTelemetry(telemetry, FtcDashboard.getInstance().getTelemetry());
 
         intake.setPower(1);
 
@@ -125,13 +125,13 @@ public class ProfilingTest extends LinearOpMode {
                 hoodTarget = target.getHood();
             }
 
-            telemetryData.addData("target Vel", targetVel);
-            telemetryData.addData("current Vel", shooter.getCurrentVel());
-            telemetryData.addData("hood target", hoodTarget);
-            telemetryData.addData("distance from goal", curDistance);
-            telemetryData.addLine();
-            telemetryData.addData("ready to shoot", shooter.atVelocity());
-            telemetryData.update();
+//            telemetryData.addData("target Vel", targetVel);
+//            telemetryData.addData("current Vel", shooter.getCurrentVel());
+//            telemetryData.addData("hood target", hoodTarget);
+//            telemetryData.addData("distance from goal", curDistance);
+//            telemetryData.addLine();
+//            telemetryData.addData("ready to shoot", shooter.atVelocity());
+//            telemetryData.update();
 
             double y = -gamepad1.left_stick_y; // Remember, Y stick value is reversed
             double x = gamepad1.left_stick_x * 1.1; // Counteract imperfect strafing
